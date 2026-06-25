@@ -7,47 +7,35 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-// Circular progress ring that sweeps around the play button while audio plays.
-// r=22 gives circumference ≈ 138.2px — the ring fills over `duration` seconds.
-const RING_R = 22;
-const RING_CIRC = 2 * Math.PI * RING_R;
-
+// Circular progress ring rendered outside + around the button.
+// Uses framer-motion pathLength for reliable cross-browser SVG animation.
 function ProgressRing({ duration, playing }: { duration: number; playing: boolean }) {
-  if (!playing) return null;
   return (
     <svg
-      key={duration}
       className="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox="0 0 52 52"
+      viewBox="0 0 56 56"
       style={{ transform: "rotate(-90deg)" }}
     >
-      <circle
-        cx="26"
-        cy="26"
-        r={RING_R}
-        fill="none"
-        stroke="rgba(168,85,247,0.25)"
-        strokeWidth="2.5"
-      />
-      <circle
-        cx="26"
-        cy="26"
-        r={RING_R}
+      {/* track */}
+      <circle cx="28" cy="28" r="26" fill="none" stroke="rgba(168,85,247,0.18)" strokeWidth="2.5" />
+      {/* animated fill */}
+      <motion.circle
+        cx="28"
+        cy="28"
+        r="26"
         fill="none"
         stroke="rgb(168,85,247)"
         strokeWidth="2.5"
         strokeLinecap="round"
-        strokeDasharray={RING_CIRC}
-        strokeDashoffset={RING_CIRC}
-        style={{
-          animation: `jjs-progress ${duration}s linear forwards`,
-        }}
-      />
-      <style>{`
-        @keyframes jjs-progress {
-          to { stroke-dashoffset: 0; }
+        pathLength={1}
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: playing ? 1 : 0 }}
+        transition={
+          playing
+            ? { duration, ease: "linear" }
+            : { duration: 0.15 }
         }
-      `}</style>
+      />
     </svg>
   );
 }
@@ -113,12 +101,13 @@ const SoundCard = ({
       )}
 
       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 z-10">
-        <div className="relative shrink-0 h-10 w-10 sm:h-12 sm:w-12">
-          <ProgressRing key={isPlaying ? sound.id : `idle-${sound.id}`} duration={ringDuration} playing={isPlaying} />
+        {/* Ring container is 4px larger on each side than the button so the ring visibly wraps around it */}
+        <div className="relative shrink-0 flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16">
+          <ProgressRing duration={ringDuration} playing={isPlaying} />
           <Button
             variant="secondary"
             size="icon"
-            className={`rounded-full h-full w-full transition-all ${
+            className={`relative z-10 rounded-full h-10 w-10 sm:h-12 sm:w-12 transition-all ${
               isPlaying
                 ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(168,85,247,0.5)]"
                 : "bg-white/5 text-muted-foreground hover:text-white hover:bg-white/10"
