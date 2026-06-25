@@ -1,44 +1,9 @@
-import { useState, useRef, useCallback } from "react";
-import { Search, Play, Pause, Copy, Check, Volume2, Star } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Search, Copy, Check, Volume2, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SOUNDS, SOUND_CATEGORIES, Sound } from "@/data/sounds";
-import { playProfile, getProfile } from "@/lib/audioEngine";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-// Circular progress ring rendered outside + around the button.
-// Uses framer-motion pathLength for reliable cross-browser SVG animation.
-function ProgressRing({ duration, playing }: { duration: number; playing: boolean }) {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox="0 0 56 56"
-      style={{ transform: "rotate(-90deg)" }}
-    >
-      {/* track */}
-      <circle cx="28" cy="28" r="26" fill="none" stroke="rgba(168,85,247,0.18)" strokeWidth="2.5" />
-      {/* animated fill */}
-      <motion.circle
-        cx="28"
-        cy="28"
-        r="26"
-        fill="none"
-        stroke="rgb(168,85,247)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        pathLength={1}
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: playing ? 1 : 0 }}
-        transition={
-          playing
-            ? { duration, ease: "linear" }
-            : { duration: 0.15 }
-        }
-      />
-    </svg>
-  );
-}
 
 const FAVORITES_KEY = "jjs-soundboard-favorites";
 
@@ -57,17 +22,11 @@ function saveFavorites(favs: Set<string>) {
 
 const SoundCard = ({
   sound,
-  isPlaying,
   isFavorite,
-  ringDuration,
-  onPlayToggle,
   onFavoriteToggle,
 }: {
   sound: Sound;
-  isPlaying: boolean;
   isFavorite: boolean;
-  ringDuration: number;
-  onPlayToggle: (sound: Sound) => void;
   onFavoriteToggle: (id: string) => void;
 }) => {
   const [copied, setCopied] = useState(false);
@@ -96,47 +55,20 @@ const SoundCard = ({
       transition={{ duration: 0.18 }}
       className="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg bg-card/40 hover:bg-card/80 border border-white/5 hover:border-primary/30 transition-all overflow-hidden"
     >
-      {isPlaying && (
-        <div className="absolute inset-0 bg-primary/10 blur-xl pointer-events-none" />
-      )}
-
-      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 z-10">
-        {/* Ring container is 4px larger on each side than the button so the ring visibly wraps around it */}
-        <div className="relative shrink-0 flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16">
-          <ProgressRing duration={ringDuration} playing={isPlaying} />
-          <Button
-            variant="secondary"
-            size="icon"
-            className={`relative z-10 rounded-full h-10 w-10 sm:h-12 sm:w-12 transition-all ${
-              isPlaying
-                ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-                : "bg-white/5 text-muted-foreground hover:text-white hover:bg-white/10"
-            }`}
-            onClick={() => onPlayToggle(sound)}
-          >
-            {isPlaying ? (
-              <Pause className="h-5 w-5 fill-current" />
-            ) : (
-              <Play className="h-5 w-5 ml-0.5 fill-current" />
-            )}
-          </Button>
-        </div>
-
-        <div className="flex flex-col min-w-0">
-          <h3 className="text-sm sm:text-base font-medium text-foreground truncate mb-1">
-            {sound.title}
-          </h3>
-          <Badge
-            variant="outline"
-            className="w-fit text-[10px] sm:text-xs bg-black/40 border-white/10 text-muted-foreground whitespace-nowrap"
-          >
-            {sound.category}
-          </Badge>
-        </div>
+      <div className="flex flex-col min-w-0 flex-1 z-10">
+        <h3 className="text-sm sm:text-base font-medium text-foreground truncate mb-1">
+          {sound.title}
+        </h3>
+        <Badge
+          variant="outline"
+          className="w-fit text-[10px] sm:text-xs bg-black/40 border-white/10 text-muted-foreground whitespace-nowrap"
+        >
+          {sound.category}
+        </Badge>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2 pl-2 z-10 shrink-0">
-        <div className="hidden sm:flex items-center bg-black/50 border border-white/10 rounded px-3 py-1.5 font-mono text-xs text-primary/80 select-all">
+      <div className="flex items-center gap-1.5 sm:gap-2 pl-3 z-10 shrink-0">
+        <div className="hidden sm:flex items-center bg-black/50 border border-white/10 rounded px-3 py-1.5 font-mono text-xs text-primary/80 select-all cursor-text">
           {sound.robloxId}
         </div>
 
@@ -173,78 +105,7 @@ type Tab = "all" | "favorites";
 export default function Soundboard() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("all");
-  const [playingId, setPlayingId] = useState<string | null>(null);
-  const [playingDuration, setPlayingDuration] = useState<number>(1);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
-
-  // Synthesis stop fn
-  const stopCurrentRef = useRef<(() => void) | null>(null);
-  // HTML Audio element for real audio files
-  const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
-  // Timer to auto-clear playingId after synthesis ends
-  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const stopAll = useCallback(() => {
-    stopCurrentRef.current?.();
-    stopCurrentRef.current = null;
-    if (htmlAudioRef.current) {
-      htmlAudioRef.current.pause();
-      htmlAudioRef.current.src = "";
-      htmlAudioRef.current = null;
-    }
-    if (endTimerRef.current) {
-      clearTimeout(endTimerRef.current);
-      endTimerRef.current = null;
-    }
-  }, []);
-
-  const handlePlayToggle = useCallback(
-    (sound: Sound) => {
-      if (playingId === sound.id) {
-        stopAll();
-        setPlayingId(null);
-      } else {
-        stopAll();
-
-        if (sound.url) {
-          // ── Real audio file ──────────────────────────────────────────────
-          const audio = new Audio(sound.url);
-          audio.volume = 0.7;
-          htmlAudioRef.current = audio;
-
-          // Update ring duration once metadata is available
-          audio.addEventListener("loadedmetadata", () => {
-            if (isFinite(audio.duration) && audio.duration > 0) {
-              setPlayingDuration(audio.duration);
-            }
-          }, { once: true });
-
-          audio.addEventListener("ended", () => {
-            setPlayingId((prev) => (prev === sound.id ? null : prev));
-            htmlAudioRef.current = null;
-          }, { once: true });
-
-          audio.play().catch(() => setPlayingId(null));
-          // Ring will show a spinner-style long duration until metadata loads
-          setPlayingDuration(60);
-        } else {
-          // ── Synthesized audio ────────────────────────────────────────────
-          const profile = getProfile(sound.id);
-          const total = profile.duration + profile.release;
-          setPlayingDuration(total);
-          const stop = playProfile(profile);
-          stopCurrentRef.current = stop;
-          endTimerRef.current = setTimeout(() => {
-            setPlayingId((prev) => (prev === sound.id ? null : prev));
-            stopCurrentRef.current = null;
-          }, (total + 0.1) * 1000);
-        }
-
-        setPlayingId(sound.id);
-      }
-    },
-    [playingId, stopAll]
-  );
 
   const handleFavoriteToggle = useCallback((id: string) => {
     setFavorites((prev) => {
@@ -438,10 +299,7 @@ export default function Soundboard() {
                         <SoundCard
                           key={sound.id}
                           sound={sound}
-                          isPlaying={playingId === sound.id}
                           isFavorite={favorites.has(sound.id)}
-                          ringDuration={playingId === sound.id ? playingDuration : 1}
-                          onPlayToggle={handlePlayToggle}
                           onFavoriteToggle={handleFavoriteToggle}
                         />
                       ))}
