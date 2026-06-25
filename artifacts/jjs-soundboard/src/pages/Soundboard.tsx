@@ -7,6 +7,51 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+// Circular progress ring that sweeps around the play button while audio plays.
+// r=22 gives circumference ≈ 138.2px — the ring fills over `duration` seconds.
+const RING_R = 22;
+const RING_CIRC = 2 * Math.PI * RING_R;
+
+function ProgressRing({ duration, playing }: { duration: number; playing: boolean }) {
+  if (!playing) return null;
+  return (
+    <svg
+      key={duration}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      viewBox="0 0 52 52"
+      style={{ transform: "rotate(-90deg)" }}
+    >
+      <circle
+        cx="26"
+        cy="26"
+        r={RING_R}
+        fill="none"
+        stroke="rgba(168,85,247,0.25)"
+        strokeWidth="2.5"
+      />
+      <circle
+        cx="26"
+        cy="26"
+        r={RING_R}
+        fill="none"
+        stroke="rgb(168,85,247)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeDasharray={RING_CIRC}
+        strokeDashoffset={RING_CIRC}
+        style={{
+          animation: `jjs-progress ${duration}s linear forwards`,
+        }}
+      />
+      <style>{`
+        @keyframes jjs-progress {
+          to { stroke-dashoffset: 0; }
+        }
+      `}</style>
+    </svg>
+  );
+}
+
 const FAVORITES_KEY = "jjs-soundboard-favorites";
 
 function loadFavorites(): Set<string> {
@@ -36,6 +81,8 @@ const SoundCard = ({
   onFavoriteToggle: (id: string) => void;
 }) => {
   const [copied, setCopied] = useState(false);
+  const profile = getProfile(sound.id);
+  const ringDuration = profile.duration + profile.release;
 
   const handleCopy = async () => {
     try {
@@ -66,22 +113,25 @@ const SoundCard = ({
       )}
 
       <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 z-10">
-        <Button
-          variant="secondary"
-          size="icon"
-          className={`shrink-0 rounded-full h-10 w-10 sm:h-12 sm:w-12 transition-all ${
-            isPlaying
-              ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-              : "bg-white/5 text-muted-foreground hover:text-white hover:bg-white/10"
-          }`}
-          onClick={() => onPlayToggle(sound)}
-        >
-          {isPlaying ? (
-            <Pause className="h-5 w-5 fill-current" />
-          ) : (
-            <Play className="h-5 w-5 ml-0.5 fill-current" />
-          )}
-        </Button>
+        <div className="relative shrink-0 h-10 w-10 sm:h-12 sm:w-12">
+          <ProgressRing key={isPlaying ? sound.id : `idle-${sound.id}`} duration={ringDuration} playing={isPlaying} />
+          <Button
+            variant="secondary"
+            size="icon"
+            className={`rounded-full h-full w-full transition-all ${
+              isPlaying
+                ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                : "bg-white/5 text-muted-foreground hover:text-white hover:bg-white/10"
+            }`}
+            onClick={() => onPlayToggle(sound)}
+          >
+            {isPlaying ? (
+              <Pause className="h-5 w-5 fill-current" />
+            ) : (
+              <Play className="h-5 w-5 ml-0.5 fill-current" />
+            )}
+          </Button>
+        </div>
 
         <div className="flex flex-col min-w-0">
           <h3 className="text-sm sm:text-base font-medium text-foreground truncate mb-1">
