@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "JJS Soundboard"
+version = "1.0.0"
+id = "artifacts/jjs-soundboard"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22164
+
+[services.development]
+run = "pnpm --filter @workspace/jjs-soundboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jjs-soundboard", "run", "build" ]
+publicDir = "artifacts/jjs-soundboard/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22164"
+BASE_PATH = "/"

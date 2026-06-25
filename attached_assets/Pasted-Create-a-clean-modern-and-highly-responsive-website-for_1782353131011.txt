@@ -1,0 +1,14 @@
+Create a clean, modern, and highly responsive website for a Roblox "Jujutsu Shenanigans" soundboard and audio ID repository. This site will be heavily used by JJS Skill Builders, so it needs to be optimized for quickly finding and copying audio IDs, inspired by the clean layout of https://ossaamm.github.io/.
+
+Key Features to Include:
+1. Header & Quick Search: Create a prominent header with a dark, stylized "Jujutsu Kaisen" inspired theme (using dark grays, deep purples, and blues). Include a functional search bar right at the top that filters the sound effects instantly in real-time as the user types.
+
+2. Grouped Category Layout: Instead of a generic grid, organize the sound effects cleanly by category headers (e.g., Music, Impacts & Ragdolls, Gojo, Sukuna, Hakari, Yuji, Items). Use a clean layout where each category contains its respective list of sounds.
+
+3. Compact, Interactive Sound Rows: Each sound entry should be a sleek, compact card or row to maximize visibility on one screen (similar to a dashboard). Each entry needs:
+   - A clear Title/Move Name and its respective Character or Category.
+   - A small, distinct 'Play/Pause' icon button to preview the audio instantly in the browser.
+   - The Roblox Audio ID clearly visible in a distinct mono-spaced font code block.
+   - An "Instant Copy" icon button next to the ID. When clicked, it must copy the numbers directly to the clipboard using the modern Clipboard API and provide an instant, satisfying visual indicator (like a tooltip or the icon changing to a green checkmark).
+
+4. Audio Behavior & Technical Details: Use HTML, CSS, and vanilla JavaScript. Build an automatic player control system: if a user clicks play on a sound while another sound is already previewing, the previous sound should instantly stop and reset so audio tracks don't overlap. Ensure the layout remains perfectly scannable and readable on mobile devices. Populate the site with realistic mock JJS audio categories, item titles, and placeholder audio URLs/IDs so I can easily swap them later.
