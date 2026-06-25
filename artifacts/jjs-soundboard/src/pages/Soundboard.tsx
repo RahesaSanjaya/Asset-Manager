@@ -59,18 +59,18 @@ const SoundCard = ({
   sound,
   isPlaying,
   isFavorite,
+  ringDuration,
   onPlayToggle,
   onFavoriteToggle,
 }: {
   sound: Sound;
   isPlaying: boolean;
   isFavorite: boolean;
+  ringDuration: number;
   onPlayToggle: (sound: Sound) => void;
   onFavoriteToggle: (id: string) => void;
 }) => {
   const [copied, setCopied] = useState(false);
-  const profile = getProfile(sound.id);
-  const ringDuration = profile.duration + profile.release;
 
   const handleCopy = async () => {
     try {
@@ -174,41 +174,76 @@ export default function Soundboard() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [playingDuration, setPlayingDuration] = useState<number>(1);
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
 
-  // Holds the stop-function returned by playProfile for the current sound
+  // Synthesis stop fn
   const stopCurrentRef = useRef<(() => void) | null>(null);
-  // Holds a timeout to auto-clear playingId when sound finishes
+  // HTML Audio element for real audio files
+  const htmlAudioRef = useRef<HTMLAudioElement | null>(null);
+  // Timer to auto-clear playingId after synthesis ends
   const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stopAll = useCallback(() => {
+    stopCurrentRef.current?.();
+    stopCurrentRef.current = null;
+    if (htmlAudioRef.current) {
+      htmlAudioRef.current.pause();
+      htmlAudioRef.current.src = "";
+      htmlAudioRef.current = null;
+    }
+    if (endTimerRef.current) {
+      clearTimeout(endTimerRef.current);
+      endTimerRef.current = null;
+    }
+  }, []);
 
   const handlePlayToggle = useCallback(
     (sound: Sound) => {
       if (playingId === sound.id) {
-        // Stop currently playing sound
-        stopCurrentRef.current?.();
-        stopCurrentRef.current = null;
-        if (endTimerRef.current) clearTimeout(endTimerRef.current);
+        stopAll();
         setPlayingId(null);
       } else {
-        // Stop whatever was playing before
-        stopCurrentRef.current?.();
-        if (endTimerRef.current) clearTimeout(endTimerRef.current);
+        stopAll();
 
-        const profile = getProfile(sound.id);
-        const stop = playProfile(profile);
-        stopCurrentRef.current = stop;
+        if (sound.url) {
+          // ── Real audio file ──────────────────────────────────────────────
+          const audio = new Audio(sound.url);
+          audio.volume = 0.7;
+          htmlAudioRef.current = audio;
 
-        // Auto-clear the playing state when the sound finishes naturally
-        const totalMs = (profile.duration + profile.release + 0.1) * 1000;
-        endTimerRef.current = setTimeout(() => {
-          setPlayingId((prev) => (prev === sound.id ? null : prev));
-          stopCurrentRef.current = null;
-        }, totalMs);
+          // Update ring duration once metadata is available
+          audio.addEventListener("loadedmetadata", () => {
+            if (isFinite(audio.duration) && audio.duration > 0) {
+              setPlayingDuration(audio.duration);
+            }
+          }, { once: true });
+
+          audio.addEventListener("ended", () => {
+            setPlayingId((prev) => (prev === sound.id ? null : prev));
+            htmlAudioRef.current = null;
+          }, { once: true });
+
+          audio.play().catch(() => setPlayingId(null));
+          // Ring will show a spinner-style long duration until metadata loads
+          setPlayingDuration(60);
+        } else {
+          // ── Synthesized audio ────────────────────────────────────────────
+          const profile = getProfile(sound.id);
+          const total = profile.duration + profile.release;
+          setPlayingDuration(total);
+          const stop = playProfile(profile);
+          stopCurrentRef.current = stop;
+          endTimerRef.current = setTimeout(() => {
+            setPlayingId((prev) => (prev === sound.id ? null : prev));
+            stopCurrentRef.current = null;
+          }, (total + 0.1) * 1000);
+        }
 
         setPlayingId(sound.id);
       }
     },
-    [playingId]
+    [playingId, stopAll]
   );
 
   const handleFavoriteToggle = useCallback((id: string) => {
@@ -405,6 +440,7 @@ export default function Soundboard() {
                           sound={sound}
                           isPlaying={playingId === sound.id}
                           isFavorite={favorites.has(sound.id)}
+                          ringDuration={playingId === sound.id ? playingDuration : 1}
                           onPlayToggle={handlePlayToggle}
                           onFavoriteToggle={handleFavoriteToggle}
                         />
