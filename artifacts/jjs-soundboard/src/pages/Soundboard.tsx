@@ -224,7 +224,7 @@ export default function Soundboard() {
                   JJS Soundboard
                 </h1>
                 <p className="text-xs text-primary/60 font-medium tracking-wider uppercase">
-                  Cursed Audio Archive
+                  Best Sound Library.
                 </p>
               </div>
             </div>
