@@ -217,24 +217,6 @@ export default function Soundboard() {
               )}
             </button>
 
-            <div className="h-4 w-px bg-white/10 mr-3" />
-
-            {activeTab === "all" &&
-              SOUND_CATEGORIES.map((category) => {
-                const hasMatches = filteredSounds.some(
-                  (s) => s.category === category
-                );
-                if (!hasMatches && search) return null;
-                return (
-                  <button
-                    key={category}
-                    onClick={() => scrollToCategory(category)}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors whitespace-nowrap"
-                  >
-                    {category}
-                  </button>
-                );
-              })}
           </div>
         </div>
       </header>
