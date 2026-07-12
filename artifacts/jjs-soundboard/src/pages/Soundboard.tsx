@@ -151,8 +151,8 @@ export default function Soundboard() {
         <div className="max-w-5xl mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-indigo-900 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                <Volume2 className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                <img src="/logo.png" alt="JJS Logo" className="h-full w-full object-cover" />
               </div>
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-white">
