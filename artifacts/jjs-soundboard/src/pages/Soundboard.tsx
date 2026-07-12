@@ -59,6 +59,9 @@ const SoundCard = ({
         <h3 className="text-sm sm:text-base font-medium text-foreground truncate mb-1">
           {sound.title}
         </h3>
+        <div className="font-mono text-xs text-primary/80 select-all cursor-text mb-1 truncate">
+          {sound.robloxId}
+        </div>
         <Badge
           variant="outline"
           className="w-fit text-[10px] sm:text-xs bg-black/40 border-white/10 text-muted-foreground whitespace-nowrap"
@@ -68,9 +71,6 @@ const SoundCard = ({
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2 pl-3 z-10 shrink-0">
-        <div className="hidden sm:flex items-center bg-black/50 border border-white/10 rounded px-3 py-1.5 font-mono text-xs text-primary/80 select-all cursor-text">
-          {sound.robloxId}
-        </div>
 
         <button
           onClick={() => onFavoriteToggle(sound.id)}
