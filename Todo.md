@@ -173,22 +173,22 @@ openapi.yaml ──(manual parity)──> db/schema/*.ts      (Drizzle table def
 **Goal:** Replace hardcoded data dengan API calls menggunakan React Query hooks.
 
 #### Task 3.1: Setup API Client
-- [ ] Import `setBaseUrl` dari `@workspace/api-client-react` di `jjs-soundboard/src/main.tsx` atau `App.tsx`
-- [ ] Set base URL ke `/api`
-- [ ] Pastikan `QueryClientProvider` sudah terpasang (sudah ada)
-- [ ] Import dan gunakan generated hooks (`useSoundsQuery`, `useCategoriesQuery`, dll)
+- [x] Import `setBaseUrl` dari `@workspace/api-client-react` di `jjs-soundboard/src/main.tsx` atau `App.tsx`
+- [x] Set base URL ke `/api`
+- [x] Pastikan `QueryClientProvider` sudah terpasang (sudah ada)
+- [x] Import dan gunakan generated hooks (`useSoundsQuery`, `useCategoriesQuery`, dll)
 
 #### Task 3.2: Refactor Soundboard Page
-- [ ] Replace `import { sounds } from "@/data/sounds"` dengan API query
-- [ ] Gunakan `useSoundsQuery({ search, category })` untuk fetch data
-- [ ] Handle loading state (skeleton/spinner)
-- [ ] Handle error state (retry button)
+- [x] Replace `import { sounds } from "@/data/sounds"` dengan API query
+- [x] Gunakan `useSoundsQuery({ search, category })` untuk fetch data
+- [x] Handle loading state (skeleton/spinner)
+- [x] Handle error state (retry button)
 - [ ] Hapus atau archive `src/data/sounds.ts` (tidak perlu lagi hardcoded)
 
 #### Task 3.3: Categories Navigation
-- [ ] Fetch categories dari API
-- [ ] Update tab/category navigation untuk use API data
-- [ ] Pastikan filtering by category berfungsi dengan API query params
+- [x] Fetch categories dari API
+- [x] Update tab/category navigation untuk use API data
+- [x] Pastikan filtering by category berfungsi dengan API query params
 
 ---
 
