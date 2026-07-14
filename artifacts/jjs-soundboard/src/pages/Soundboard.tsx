@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { Search, Copy, Check, Volume2, Star } from "lucide-react";
+import { Search, Copy, Check, Volume2, Star, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { SOUNDS, SOUND_CATEGORIES, Sound } from "@/data/sounds";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,7 @@ const SoundCard = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.18 }}
-      className="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg bg-card/40 hover:bg-card/80 border border-white/5 hover:border-primary/30 transition-all overflow-hidden"
+      className="group relative flex items-center justify-between p-3 sm:p-4 rounded-lg bg-black/5 hover:bg-black/10 dark:bg-card/40 dark:hover:bg-card/80 border border-black/10 dark:border-white/5 hover:border-primary/50 dark:hover:border-primary/30 transition-all overflow-hidden text-black dark:text-white"
     >
       <div className="flex flex-col min-w-0 flex-1 z-10">
         <h3 className="text-sm sm:text-base font-medium text-foreground truncate mb-1">
@@ -77,8 +78,8 @@ const SoundCard = ({
           title={isFavorite ? "Remove from favorites" : "Add to favorites"}
           className={`h-9 w-9 flex items-center justify-center rounded-md border transition-all ${
             isFavorite
-              ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20"
-              : "text-muted-foreground border-white/10 bg-black/50 hover:text-yellow-400 hover:border-yellow-500/20 hover:bg-yellow-500/5"
+              ? "text-yellow-500 dark:text-yellow-400 border-yellow-500/30 bg-yellow-500/10 hover:bg-yellow-500/20"
+              : "text-black dark:text-muted-foreground border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/50 hover:text-yellow-500 dark:hover:text-yellow-400 hover:border-yellow-500/20 hover:bg-yellow-500/10 dark:hover:bg-yellow-500/5"
           }`}
         >
           <Star className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
@@ -89,8 +90,8 @@ const SoundCard = ({
           title="Copy ID"
           className={`h-9 w-9 flex items-center justify-center rounded-md border transition-all ${
             copied
-              ? "bg-green-500/20 text-green-400 border-green-500/30"
-              : "bg-black/50 text-muted-foreground border-white/10 hover:text-white hover:border-white/20 hover:bg-white/5"
+              ? "bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30"
+              : "bg-black/5 dark:bg-black/50 text-black dark:text-muted-foreground border-black/10 dark:border-white/10 hover:text-black dark:hover:text-white hover:border-black/20 dark:hover:border-white/20 hover:bg-black/10 dark:hover:bg-white/5"
           }`}
         >
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -106,6 +107,7 @@ export default function Soundboard() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
+  const { theme, setTheme } = useTheme();
 
   const handleFavoriteToggle = useCallback((id: string) => {
     setFavorites((prev) => {
@@ -155,26 +157,35 @@ export default function Soundboard() {
                 <img src="/logo.png" alt="JJS Logo" className="h-full w-full object-cover" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-white">
+                <h1 className="text-xl font-bold tracking-tight text-black dark:text-white">
                   JJS Soundboard
                 </h1>
-                <p className="text-xs text-primary/60 font-medium tracking-wider uppercase">
+                <p className="text-xs text-primary/80 dark:text-primary/60 font-medium tracking-wider uppercase">
                   Best Sound Library.
                 </p>
               </div>
             </div>
 
-            <div className="relative w-full sm:max-w-xs">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-black/50 dark:text-muted-foreground" />
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Search sounds or IDs..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 bg-black/5 dark:bg-black/40 border-black/10 dark:border-white/10 focus-visible:ring-primary h-10 w-full rounded-full text-black dark:text-white placeholder:text-black/50 dark:placeholder:text-muted-foreground"
+                />
               </div>
-              <Input
-                type="text"
-                placeholder="Search sounds or IDs..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-black/40 border-white/10 focus-visible:ring-primary h-10 w-full rounded-full"
-              />
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="flex items-center justify-center h-10 w-10 rounded-full bg-black/40 border border-white/10 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </button>
             </div>
           </div>
         </div>

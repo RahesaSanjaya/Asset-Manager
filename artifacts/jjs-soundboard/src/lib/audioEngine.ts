@@ -71,7 +71,7 @@ export function playProfile(profile: SoundProfile): () => void {
   // Optional waveshaper
   if (profile.distortion) {
     const shaper = ac.createWaveShaper();
-    shaper.curve = makeDistortionCurve(150);
+    shaper.curve = makeDistortionCurve(150) as any;
     shaper.connect(chain);
     chain = shaper;
   }
