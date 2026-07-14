@@ -2,9 +2,14 @@ import { useState, useCallback } from "react";
 import { Search, Copy, Check, Volume2, Star, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { SOUNDS, SOUND_CATEGORIES, Sound } from "@/data/sounds";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { 
+  useSoundsQuery, 
+  useCategoriesQuery,
+  useHealthCheck
+} from "@workspace/api-client-react";
+import { Sound, SoundCategory } from "@workspace/api-client-react";
 
 const FAVORITES_KEY = "jjs-soundboard-favorites";
 
@@ -109,6 +114,16 @@ export default function Soundboard() {
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
   const { theme, setTheme } = useTheme();
 
+  // API Query hooks
+  const { data: soundsResponse, isLoading: isSoundsLoading, error: soundsError } = useSoundsQuery({
+    query: {
+      search,
+      category: activeTab === "favorites" ? undefined : activeTab,
+    }
+  });
+
+  const { data: categories, isLoading: isCategoriesLoading } = useCategoriesQuery();
+
   const handleFavoriteToggle = useCallback((id: string) => {
     setFavorites((prev) => {
       const next = new Set(prev);
@@ -130,10 +145,46 @@ export default function Soundboard() {
     }
   };
 
-  const sourceSounds =
-    activeTab === "favorites"
-      ? SOUNDS.filter((s) => favorites.has(s.id))
-      : SOUNDS;
+  // Handle loading and error states
+  if (isSoundsLoading || isCategoriesLoading) {
+    return (
+      <div className="min-h-[100dvh] bg-background text-foreground selection:bg-primary/30 pb-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce-animate-none" />
+          <p className="mt-4 text-muted-foreground">Loading sounds...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (soundsError) {
+    return (
+      <div className="min-h-[100dvh] bg-background text-foreground selection:bg-primary/30 pb-20 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 border border-red-500/20 mb-4">
+            <Search className="h-8 w-8 text-red-500" />
+          </div>
+          <h3 className="text-lg font-medium text-white mb-2">
+            Error Loading Sounds
+          </h3>
+          <p className="text-muted-foreground text-sm mb-4">
+            Failed to load sound data. Please try again later.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary/20 text-primary border border-primary/30 rounded-full hover:bg-primary/30 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const sounds = soundsResponse?.sounds || [];
+  const sourceSounds = activeTab === "favorites" 
+    ? sounds.filter((s) => favorites.has(s.id))
+    : sounds;
 
   const filteredSounds = sourceSounds.filter(
     (s) =>
@@ -142,9 +193,9 @@ export default function Soundboard() {
       s.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  const visibleCategories = SOUND_CATEGORIES.filter((cat) =>
+  const visibleCategories = categories?.filter((cat) =>
     filteredSounds.some((s) => s.category === cat)
-  );
+  ) || [];
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground selection:bg-primary/30 pb-20">
