@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: sounds
+    description: Sound operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,136 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /sounds:
+    get:
+      operationId: getSounds
+      tags: [sounds]
+      summary: List sounds
+      description: Returns a list of sounds with pagination
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SoundList"
+    post:
+      operationId: createSound
+      tags: [sounds]
+      summary: Create a sound
+      description: Create a new sound entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSoundRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sound"
+        "400":
+          description: Bad request
+  /sounds/{id}:
+    get:
+      operationId: getSound
+      tags: [sounds]
+      summary: Get a sound
+      description: Returns a single sound by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sound"
+        "404":
+          description: Not found
+    put:
+      operationId: updateSound
+      tags: [sounds]
+      summary: Update a sound
+      description: Update an existing sound
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSoundRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sound"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteSound
+      tags: [sounds]
+      summary: Delete a sound
+      description: Delete a sound entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: No content
+        "404":
+          description: Not found
+  /categories:
+    get:
+      operationId: getCategories
+      tags: [sounds]
+      summary: List categories
+      description: Returns a list of categories
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +165,103 @@ components:
           type: string
       required:
         - status
+    Sound:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+        robloxId:
+          type: string
+        character:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - category
+        - robloxId
+        - createdAt
+        - updatedAt
+    CreateSoundRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        robloxId:
+          type: string
+        character:
+          type: string
+      required:
+        - title
+        - category
+        - robloxId
+    UpdateSoundRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        category:
+          type: string
+        robloxId:
+          type: string
+        character:
+          type: string
+      required: []
+    SoundList:
+      type: object
+      properties:
+        sounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/Sound"
+        pagination:
+          $ref: "#/components/schemas/PaginationMeta"
+      required:
+        - sounds
+        - pagination
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+        sortOrder:
+          type: integer
+      required:
+        - id
+        - name
+        - slug
+        - sortOrder
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
 
