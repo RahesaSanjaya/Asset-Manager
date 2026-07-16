@@ -1,2 +1,3 @@
-#!/bin/sh
-exec npm "$@"
+#!/bin/bash
+export PATH="$HOME/local/node-v22.17.1-darwin-x64/bin:$PATH"
+exec npx -y pnpm@8 "$@"

@@ -8,3 +8,19 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Sound {
+  id: string;
+  title: string;
+  robloxId: string;
+  category: string;
+}
+
+export interface SoundList {
+  sounds: Sound[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export type SoundCategory = string;

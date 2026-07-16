@@ -215,6 +215,19 @@
   --destructive-foreground: 0 0% 100%;
   --input: 240 5% 88%;
   --ring: 267 100% 55%;
+  --sidebar: 240 5% 97%;
+  --sidebar-foreground: 240 10% 8%;
+  --sidebar-border: 240 5% 88%;
+  --sidebar-primary: 267 100% 55%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 267 20% 92%;
+  --sidebar-accent-foreground: 267 40% 30%;
+  --sidebar-ring: 267 100% 55%;
+  --chart-1: 267 100% 55%;
+  --chart-2: 240 5% 88%;
+  --chart-3: 267 20% 92%;
+  --chart-4: 240 5% 80%;
+  --chart-5: 267 30% 90%;
 }
 
 .dark {

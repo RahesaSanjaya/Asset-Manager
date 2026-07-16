@@ -13,7 +13,7 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type { HealthStatus, Sound, SoundList, SoundCategory } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
 import type { ErrorType } from "../custom-fetch";
@@ -24,10 +24,10 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-/**
- * Returns server health status
- * @summary Health check
- */
+// ---------------------------------------------------------------------------
+// Health
+// ---------------------------------------------------------------------------
+
 export const getHealthCheckUrl = () => {
   return `/api/healthz`;
 };
@@ -76,10 +76,6 @@ export type HealthCheckQueryResult = NonNullable<
 >;
 export type HealthCheckQueryError = ErrorType<unknown>;
 
-/**
- * @summary Health check
- */
-
 export function useHealthCheck<
   TData = Awaited<ReturnType<typeof healthCheck>>,
   TError = ErrorType<unknown>,
@@ -92,6 +88,170 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+// ---------------------------------------------------------------------------
+// Sounds
+// ---------------------------------------------------------------------------
+
+export type GetSoundsParams = {
+  search?: string;
+  category?: string;
+  page?: number;
+  limit?: number;
+};
+
+export const getSoundsUrl = (params?: GetSoundsParams) => {
+  const query = new URLSearchParams();
+  if (params?.search) query.set("search", params.search);
+  if (params?.category) query.set("category", params.category);
+  if (params?.page !== undefined) query.set("page", String(params.page));
+  if (params?.limit !== undefined) query.set("limit", String(params.limit));
+  const qs = query.toString();
+  return `/api/sounds${qs ? `?${qs}` : ""}`;
+};
+
+export const getSounds = async (
+  params?: GetSoundsParams,
+  options?: RequestInit,
+): Promise<SoundList> => {
+  return customFetch<SoundList>(getSoundsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getSoundsQueryKey = (params?: GetSoundsParams) => {
+  return [`/api/sounds`, ...(params ? [params] : [])] as const;
+};
+
+export const getSoundsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSounds>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetSoundsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSounds>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getSoundsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSounds>>> = ({
+    signal,
+  }) => getSounds(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSounds>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSoundsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSounds>>
+>;
+export type GetSoundsQueryError = ErrorType<unknown>;
+
+export function useSoundsQuery<
+  TData = Awaited<ReturnType<typeof getSounds>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetSoundsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSounds>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getSoundsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+// ---------------------------------------------------------------------------
+// Categories
+// ---------------------------------------------------------------------------
+
+export const getCategoriesUrl = () => {
+  return `/api/sounds/categories`;
+};
+
+export const getCategories = async (
+  options?: RequestInit,
+): Promise<SoundCategory[]> => {
+  return customFetch<SoundCategory[]>(getCategoriesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getCategoriesQueryKey = () => {
+  return [`/api/sounds/categories`] as const;
+};
+
+export const getCategoriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCategories>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCategories>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getCategoriesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCategories>>> = ({
+    signal,
+  }) => getCategories({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCategories>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCategoriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCategories>>
+>;
+export type GetCategoriesQueryError = ErrorType<unknown>;
+
+export function useCategoriesQuery<
+  TData = Awaited<ReturnType<typeof getCategories>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getCategories>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getCategoriesQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

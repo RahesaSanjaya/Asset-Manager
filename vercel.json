@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter @workspace/jjs-soundboard run build",
+  "outputDirectory": "artifacts/jjs-soundboard/dist/public",
+  "installCommand": "pnpm install",
+  "framework": null
+}
