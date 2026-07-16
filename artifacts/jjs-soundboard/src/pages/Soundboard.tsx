@@ -120,6 +120,7 @@ type Tab = "all" | "favorites";
 
 export default function Soundboard() {
   const [search, setSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("all");
   const [favorites, setFavorites] = useState<Set<string>>(loadFavorites);
   const [searchHistory, setSearchHistory] = useState<string[]>(loadSearchHistory);
@@ -149,7 +150,7 @@ export default function Soundboard() {
     saveSearchHistory([]);
   }, []);
 
-  const handleSearchClick = useCallback(() => {
+  const handleSearchFocus = useCallback(() => {
     if (searchHistory.length > 0) {
       setShowHistory(true);
     }
@@ -161,8 +162,11 @@ export default function Soundboard() {
   }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && search.trim()) {
-      addToHistory(search.trim());
+    if (e.key === "Enter") {
+      setAppliedSearch(search.trim());
+      if (search.trim()) {
+        addToHistory(search.trim());
+      }
       setShowHistory(false);
     }
   }, [search, addToHistory]);
@@ -187,9 +191,9 @@ export default function Soundboard() {
 
   const filteredSounds = sourceSounds.filter(
     (s) =>
-      s.title.toLowerCase().includes(search.toLowerCase()) ||
-      s.robloxId.includes(search) ||
-      s.category.toLowerCase().includes(search.toLowerCase())
+      s.title.toLowerCase().includes(appliedSearch.toLowerCase()) ||
+      s.robloxId.includes(appliedSearch) ||
+      s.category.toLowerCase().includes(appliedSearch.toLowerCase())
   );
 
   const visibleCategories = SOUND_CATEGORIES.filter((cat) =>
@@ -231,7 +235,7 @@ export default function Soundboard() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onClick={handleSearchClick}
+                onFocus={handleSearchFocus}
                 onBlur={handleBlur}
                 className="pl-11 h-12 w-full rounded-full text-base"
               />
