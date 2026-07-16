@@ -158,8 +158,10 @@ export default function Soundboard() {
 
   const handleHistoryItemClick = useCallback((term: string) => {
     setSearch(term);
+    setAppliedSearch(term);
+    addToHistory(term);
     setShowHistory(false);
-  }, []);
+  }, [addToHistory]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
