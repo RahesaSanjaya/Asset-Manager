@@ -236,6 +236,7 @@ export default function Soundboard() {
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={handleSearchFocus}
+                onClick={handleSearchFocus}
                 onBlur={handleBlur}
                 className="pl-11 h-12 w-full rounded-full text-base"
               />
