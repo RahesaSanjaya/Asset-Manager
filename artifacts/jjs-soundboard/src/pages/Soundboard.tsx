@@ -12,7 +12,7 @@ import type { Sound } from "@/data/sounds";
 
 const FAVORITES_KEY = "jjs-soundboard-favorites";
 const SEARCH_HISTORY_KEY = "jjs-search-history";
-const MAX_HISTORY = 5;
+const MAX_HISTORY = 7;
 
 function loadFavorites(): Set<string> {
   try {
